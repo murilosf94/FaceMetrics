@@ -1,0 +1,30 @@
+# Ambientes virtuais e dependências locais
+mediapipe_env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de build e distribuição (PyInstaller)
+build/
+dist/
+*.spec
+
+# Pastas de IDEs e editores
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Pastas de documentos privados ou sensíveis (conforme solicitado)
+documentos/
+Unity/
+anotacoes/
+imagens/
+
+# Arquivos temporários ou de sistema
+.DS_Store
+Thumbs.db
+
+iniciacao_cientifica.sln
