@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from datetime import datetime
 import os
 
-# detectar cameras
+#detectar cameras
 def listar_cameras():
     arr = []
     for i in range(4): #pega os primeiros 4 indices
@@ -20,7 +20,7 @@ def listar_cameras():
             cap.release()
     return arr
 
-# configuração UDP para Unity
+#configuração UDP para Unity
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5052
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -29,11 +29,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
     def __init__(self): #inicializa a janela do menu
         self.root = tk.Tk() #cria a janela principal
         self.root.title("Configuração do FaceMetrics") 
-        #cria a janela na proporção 700x750
-        #self.root.geometry("700x750")
-        # Maximiza a janela de acordo com o Sistema Operacional
-        self.root.state('zoomed') # Para Windows
-        # self.root.attributes('-zoomed', True) # Descomente essa linha se estiver usando Linux
+        self.root.state('zoomed') #tela cheia
         
         #nome do paciente
         tk.Label(self.root, text="Nome do Paciente:", font=("Arial", 10, "bold")).pack(pady=5)
@@ -57,7 +53,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
         frame_opcoes_main = tk.Frame(self.root)
         frame_opcoes_main.pack(pady=10, fill=tk.X, padx=20) #esticar horizontalmente até preencher a tela, mas mantendo margem lateral de 20px
 
-        #ESQUERDA: Opções do gráfico
+        #ESQUERDA: opções do gráfico
         frame_radio = tk.LabelFrame(frame_opcoes_main, text="O que analisar no gráfico?", font=("Arial", 10, "bold"))
         frame_radio.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=5)
         
@@ -74,7 +70,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
         for text, mode in opcoes:
             tk.Radiobutton(frame_radio, text=text, variable=self.opcao, value=mode).pack(anchor=tk.W, padx=5)
 
-        #DIREITA: Valores Esperados
+        #DIREITA: valores Esperados
         frame_esperados = tk.LabelFrame(frame_opcoes_main, text="Movimento Esperado (Opcional)", font=("Arial", 10, "bold"))
         frame_esperados.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=5)
         
@@ -108,7 +104,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
         self.cap_preview.release()
         self.cap_preview = cv2.VideoCapture(int(escolha))
 
-    # funcao para atualizar o preview da camera
+    #funcao para atualizar o preview da camera
     def atualizar_preview(self):
         ret, frame = self.cap_preview.read()
         if ret:
@@ -120,7 +116,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
             self.canvas_preview.image = img_tk
         self.root.after(15, self.atualizar_preview)
 
-    # popup de confirmação dos dados
+    #popup de confirmação dos dados
     def confirmar(self):
         if not self.entry_nome.get().strip():
             messagebox.showwarning("Aviso", "Digite o nome do paciente.")
@@ -129,7 +125,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
         self.opcao_selecionada = self.opcao.get()
         self.camera_index = self.camera_selecionada.get()
         
-        # SALVA OS VALORES ESPERADOS
+        #SALVA OS VALORES ESPERADOS
         self.valores_esperados = {}
         for col, entry in self.entries_esperados.items():
             val = entry.get().strip().replace(',', '.')
@@ -142,22 +138,22 @@ class MenuInicial: #tudo que está aqui faz parte do menu
         self.dados_confirmados = True
         self.fechar()
 
-    # fecha a janela corretamente
+    #fecha a janela corretamente
     def fechar(self):
         self.cap_preview.release()
         self.root.destroy()
         
-# inicia o menu
+#inicia o menu
 menu = MenuInicial()
 if not menu.dados_confirmados: exit()
 
-# configuração para salvar os dados e iniciar mediapipe
+#configuração para salvar os dados e iniciar mediapipe
 if not os.path.exists("analises"): os.makedirs("analises")
 mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
-# LANDMARKS
+#LANDMARKS
 TOPO, FUNDO = 10, 152
 NARIZ = 1
 LABIO_CIMA, LABIO_BAIXO = 13, 14
@@ -167,11 +163,11 @@ OLHODIR_CIMA, OLHODIR_BAIXO = 386, 374
 SOBESQ_TOPO, SOBESQ_REF = 107, 243 
 SOBDIR_TOPO, SOBDIR_REF = 336, 463 
 
-# dados para análise
+#dados para análise
 dados_analise = []
 webcam = cv2.VideoCapture(menu.camera_index)
 
-# captura dos dados faciais
+#captura dos dados faciais
 with mp_face_mesh.FaceMesh(refine_landmarks=True) as face_mesh:
     while webcam.isOpened(): 
         success, image = webcam.read()
@@ -186,7 +182,7 @@ with mp_face_mesh.FaceMesh(refine_landmarks=True) as face_mesh:
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 landmark = face_landmarks.landmark
-                face_h = abs(landmark[FUNDO].y - landmark[TOPO].y) * h
+                face_h = abs(landmark[FUNDO].y - landmark[TOPO].y) * h #tirar o tamanho da face da pessoa
 
                 boca_abert = round(abs(landmark[LABIO_BAIXO].y - landmark[LABIO_CIMA].y) * h / face_h, 4)
                 sorriso_larg = round(abs(landmark[CANTO_DIR_BOCA].x - landmark[CANTO_ESQ_BOCA].x) * w / face_h, 4)
@@ -221,6 +217,7 @@ with mp_face_mesh.FaceMesh(refine_landmarks=True) as face_mesh:
                     "Reacao": reacao, "Direcao": h_x
                 })
 
+                #desenho dos landmarks
                 mp_drawing.draw_landmarks(
                     image=image,
                     landmark_list=face_landmarks,
@@ -229,7 +226,7 @@ with mp_face_mesh.FaceMesh(refine_landmarks=True) as face_mesh:
                     connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_tesselation_style()
                 )
 
-                sock.sendto(f"{h_x},{h_y},{reacao},{status_olho},{boca_abert}".encode(), (UDP_IP, UDP_PORT))
+                sock.sendto(f"{h_x},{h_y},{reacao},{status_olho},{boca_abert}".encode(), (UDP_IP, UDP_PORT)) #envia via UDP para a unity
         
         cv2.putText(image, f"Reacao: {reacao} | Olhos: {status_olho}", (20, 70), 1, 1.6, (255, 255, 255), 2)
         cv2.putText(image, f"Gravando: {menu.nome_paciente}", (20, 35), 1, 1.6, (255, 255, 255), 2)
@@ -240,34 +237,34 @@ with mp_face_mesh.FaceMesh(refine_landmarks=True) as face_mesh:
 webcam.release()
 cv2.destroyAllWindows()
 
-# FUNÇÃO AUXILIAR PARA PINTAR A ÁREA ALVO NO GRÁFICO
+#FUNÇÃO AUXILIAR PARA PINTAR A ÁREA ALVO NO GRÁFICO
 def aplicar_meta_grafico(ax, col_name, y_data):
     esperado = menu.valores_esperados.get(col_name)
     if esperado is not None:
         ax.axhline(y=esperado, color='red', linestyle='--', alpha=0.8, label=f'Alvo ({esperado})')
         ax.fill_between(range(len(y_data)), y_data, esperado, where=(y_data >= esperado), color='red', alpha=0.3, label='Ultrapassou Alvo')
 
-# GRÁFICOS
+#GRÁFICOS
 if dados_analise: 
     df = pd.DataFrame(dados_analise) 
     df.to_csv(f"analises/{menu.nome_paciente}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", index=False) 
     
     mapa = {'1':'Boca_Vertical', '2':'Boca_Horizontal', '3':'Olho_Esquerdo', '4':'Olho_Direito', '5':'Sobrancelha_Esquerda', '6':'Sobrancelha_Direita'}
 
-    # Opção 7: Tudo (Subplots)
+    #Opção 7: Tudo (Subplots)
     if menu.opcao_selecionada == '7':
         fig, axs = plt.subplots(3, 2, figsize=(9.8, 7))
         colunas = ['Boca_Vertical', 'Boca_Horizontal', 'Olho_Esquerdo', 'Olho_Direito', 'Sobrancelha_Esquerda', 'Sobrancelha_Direita']
         for i, col in enumerate(colunas):
             ax = axs[i//2, i%2]
             ax.plot(df[col], label='Movimento')
-            aplicar_meta_grafico(ax, col, df[col]) # Aplica a meta visual
+            aplicar_meta_grafico(ax, col, df[col]) #Aplica a meta visual
             ax.set_title(col)
             if menu.valores_esperados.get(col) is not None:
                 ax.legend(loc="upper right", fontsize=8)
         plt.tight_layout()
 
-    # Opção 8: Ambos os Olhos (Sobrepostos)
+    #Opção 8: Ambos os Olhos (Sobrepostos)
     elif menu.opcao_selecionada == '8':
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.plot(df['Olho_Esquerdo'], color='blue', label='Olho Esquerdo')
@@ -278,7 +275,7 @@ if dados_analise:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-    # Opção 9: Ambas as Sobrancelhas (Sobrepostas)
+    #Opção 9: Ambas as Sobrancelhas (Sobrepostas)
     elif menu.opcao_selecionada == '9':
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.plot(df['Sobrancelha_Esquerda'], color='magenta', label='Sobrancelha Esquerda')
@@ -289,7 +286,7 @@ if dados_analise:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-    # Opções individuais
+    #Opções individuais
     else:
         fig, ax = plt.subplots(figsize=(10, 5))
         coluna = mapa[menu.opcao_selecionada]
