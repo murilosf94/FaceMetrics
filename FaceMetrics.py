@@ -8,6 +8,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 from datetime import datetime
 import os
+import sys
 
 #detectar cameras
 def listar_cameras():
@@ -145,7 +146,7 @@ class MenuInicial: #tudo que está aqui faz parte do menu
         
 #inicia o menu
 menu = MenuInicial()
-if not menu.dados_confirmados: exit()
+if not menu.dados_confirmados: sys.exit()
 
 #configuração para salvar os dados e iniciar mediapipe
 if not os.path.exists("analises"): os.makedirs("analises")
